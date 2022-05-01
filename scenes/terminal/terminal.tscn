@@ -1,0 +1,61 @@
+[gd_scene load_steps=4 format=3 uid="uid://cl5kussgf86ih"]
+
+[ext_resource type="Script" path="res://scenes/terminal/terminal.gd" id="1_ts5r7"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_53y0f"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_rkv7w"]
+
+[node name="Terminal" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( "1_ts5r7" )
+
+[node name="scrollContainer" type="ScrollContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/bg = SubResource( "StyleBoxFlat_53y0f" )
+metadata/_edit_layout_mode = 1
+metadata/_edit_use_custom_anchors = false
+
+[node name="vContainer" type="VBoxContainer" parent="scrollContainer"]
+offset_right = 1024.0
+offset_bottom = 600.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+metadata/_edit_layout_mode = 1
+metadata/_edit_use_custom_anchors = false
+
+[node name="textLabel" type="RichTextLabel" parent="scrollContainer/vContainer"]
+offset_right = 1024.0
+theme_override_colors/default_color = Color(0, 0.756863, 0, 1)
+scroll_active = false
+
+[node name="hContainer" type="HBoxContainer" parent="scrollContainer/vContainer"]
+offset_top = 4.0
+offset_right = 1024.0
+offset_bottom = 35.0
+theme_override_constants/separation = 0
+
+[node name="prompt" type="Label" parent="scrollContainer/vContainer/hContainer"]
+offset_top = 2.0
+offset_right = 5.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0, 0.756863, 0, 1)
+text = " "
+
+[node name="lineEdit" type="LineEdit" parent="scrollContainer/vContainer/hContainer"]
+offset_left = 5.0
+offset_right = 1024.0
+offset_bottom = 31.0
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.756863, 0, 1)
+theme_override_styles/focus = SubResource( "StyleBoxEmpty_rkv7w" )
+flat = true
+
+[connection signal="visibility_changed" from="." to="." method="_on_terminal_visibility_changed"]
