@@ -15,7 +15,6 @@ func _ready():
 func open_file(fName: String, fDir: String)->bool:
 	dir = fDir
 	var file = File.new()
-	print(dir+"/"+fName)
 	var err = file.open(dir+"/"+fName, File.READ)
 	if err != ERR_FILE_NOT_FOUND && err != OK:
 		return false

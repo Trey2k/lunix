@@ -25,8 +25,8 @@ func _ready()->void:
 func lua_err_handler(err: String)->void:
 	add_text("Lua Error: " + err + "\n")
 	
-func add_builtin_command(name: String, cmd: Callable)->void:
-	builtInCommands[name]=cmd
+func add_builtin_command(cName: String, cmd: Callable)->void:
+	builtInCommands[cName]=cmd
 
 func _input(event: InputEvent)->void:
 	if event.is_action_pressed("enter"):
@@ -54,7 +54,7 @@ func set_prompt(txt: String)->void:
 func scroll_bottom()->void:
 	if max_scroll != scroll.get_v_scroll_bar().max_value:
 		max_scroll = scroll.get_v_scroll_bar().max_value
-		scroll.scroll_vertical = scroll.get_v_scroll_bar().max_value
+		scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 
 func built_in_command(cmd: String, args: Array)->bool:
 	if cmd == "reload":
@@ -66,18 +66,18 @@ func built_in_command(cmd: String, args: Array)->bool:
 		return true
 	return false
 
-func command(cmd: String)->bool:
-	var args = cmd.split(" ")
+func command(inputText: String)->bool:
+	var args = inputText.split(" ")
 	if args.size() < 1:
 		return false
 		
-	var command = args[0]
+	var cmd = args[0]
 	args.remove_at(0)
-	if built_in_command(command, args):
+	if built_in_command(cmd, args):
 		return true
 	
 	for program in Programs.programs:
-		if program.name == command:
+		if program.name == cmd:
 			program.lua.call_function("main", [args])
 			return true
 	return false
