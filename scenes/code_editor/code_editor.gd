@@ -19,8 +19,9 @@ func open_file(fName: String, fDir: String)->bool:
 	var err = file.open(dir+"/"+fName, File.READ)
 	if err != ERR_FILE_NOT_FOUND && err != OK:
 		return false
-	editor.set_text(file.get_as_text())
-	file.close()
+	if file.is_open():
+		editor.set_text(file.get_as_text())
+		file.close()
 	fileNameEdit.set_text(fName)
 	show()
 	return true
