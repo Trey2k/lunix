@@ -17,7 +17,7 @@ func _ready():
 	Terminal.add_builtin_command("ls", ls_command)
 	Terminal.add_builtin_command("cd", cd_command)
 	Terminal.add_builtin_command("rm", rm_command)
-	Terminal.set_prompt("%s>" % currentDir.get_current_dir().replace("user://storage", ""))
+	Terminal.set_prompt("%s >" % currentDir.get_current_dir().replace("user://storage", ""))
 	Editor.connect("editor_closed", Terminal.show)
 
 func edit_command(args: Array)->void:
@@ -70,7 +70,7 @@ func cd_command(args: Array)->void:
 		Terminal.add_text("ERROR: Unable to open directory '%s'" % args[0])
 	if currentDir.get_current_dir() == "user://":
 		currentDir.change_dir("storage")
-	Terminal.set_prompt("%s>" % currentDir.get_current_dir().replace("user://storage", ""))	
+	Terminal.set_prompt("%s >" % currentDir.get_current_dir().replace("user://storage", ""))	
 
 func rm_command(args: Array)->void:
 	if args.size() < 1:

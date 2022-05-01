@@ -6,6 +6,9 @@ var scroll: ScrollContainer
 var prompt: Label
 var max_scroll: float
 
+var hist: Array
+var histIndex = 0
+
 var builtInCommands = {}
 
 
@@ -34,12 +37,22 @@ func _input(event: InputEvent)->void:
 			return
 		input.hide()
 		var txt = input.text
-		add_text(prompt.get_text() + txt)
+		add_text(prompt.get_text() + " " + txt)
+		hist.append(txt)
+		histIndex = hist.size()
 		input.clear()
 		if !command(txt):
 			add_text("ERROR: Unkown command")
 		input.show()
 		input.grab_focus()
+	elif event.is_action_pressed("up"):
+		if histIndex > 0:
+			histIndex -= 1
+		input.set_text(hist[histIndex])
+	elif event.is_action_pressed("down"):
+		if histIndex < hist.size()-1:
+			histIndex += 1
+			input.set_text(hist[histIndex])
 		
 func resize_output()->void:
 	var minSize = Vector2(output.get_size().x, output.get_v_scroll_bar().get_max())
