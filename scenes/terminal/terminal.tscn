@@ -22,8 +22,8 @@ metadata/_edit_layout_mode = 1
 metadata/_edit_use_custom_anchors = false
 
 [node name="vContainer" type="VBoxContainer" parent="scrollContainer"]
-offset_right = 1024.0
-offset_bottom = 600.0
+offset_right = 72.0
+offset_bottom = 35.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3

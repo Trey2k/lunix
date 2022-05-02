@@ -8,6 +8,12 @@ var max_scroll: float
 
 var hist: Array
 var histIndex = 0
+var commandExecuting = false
+var getInput = false
+
+var inputBuffer: Array
+
+var textLock: Mutex
 
 var builtInCommands = {}
 
@@ -18,12 +24,21 @@ func _ready()->void:
 	prompt = $scrollContainer/vContainer/hContainer/prompt
 	output = $scrollContainer/vContainer/textLabel
 	scroll = $scrollContainer
+	
+	textLock = Mutex.new()
+	
 	Programs.errHandler = lua_err_handler
 	Programs.printFunc = add_text
+	Programs.inputFunc = get_input
 	scroll.get_v_scroll_bar().connect("changed", scroll_bottom)
 	output.get_v_scroll_bar().connect("changed", resize_output)
-	Programs.load_all()
 	input.grab_focus()
+	
+func _process(_delta):
+	# Only 1 message will be printed per frame
+	var txt = inputBuffer.pop_front()
+	if txt != null:
+		output.add_text("%s\n" % txt)
 
 func lua_err_handler(err: String)->void:
 	add_text("Lua Error: " + err + "\n")
@@ -32,10 +47,15 @@ func add_builtin_command(cName: String, cmd: Callable)->void:
 	builtInCommands[cName]=cmd
 
 func _input(event: InputEvent)->void:
-	if event.is_action_pressed("enter"):
+	if !is_visible_in_tree():
+		return
+	if event.is_action_pressed("enter") && getInput:
+		getInput = false
+	elif event.is_action_pressed("enter") && !commandExecuting:
 		if !input.is_visible_in_tree():
 			return
 		input.hide()
+		prompt.hide()
 		var txt = input.text
 		add_text(prompt.get_text() + " " + txt)
 		hist.append(txt)
@@ -43,23 +63,32 @@ func _input(event: InputEvent)->void:
 		input.clear()
 		if !command(txt):
 			add_text("ERROR: Unkown command")
-		input.show()
-		input.grab_focus()
-	elif event.is_action_pressed("up"):
+			command_finish()
+			return
+		
+	elif event.is_action_pressed("up") && !commandExecuting:
 		if histIndex > 0:
 			histIndex -= 1
 		input.set_text(hist[histIndex])
-	elif event.is_action_pressed("down"):
+	elif event.is_action_pressed("down") && !commandExecuting:
 		if histIndex < hist.size()-1:
 			histIndex += 1
 			input.set_text(hist[histIndex])
+			
+func command_finish()->void:
+	input.show()
+	prompt.show()
+	input.grab_focus()
+	commandExecuting = false
 		
 func resize_output()->void:
 	var minSize = Vector2(output.get_size().x, output.get_v_scroll_bar().get_max())
 	output.minimum_size = minSize
 	
 func add_text(txt: String)->void:
-	output.add_text("%s\n" % txt)
+	textLock.lock()
+	inputBuffer.push_back(txt)
+	textLock.unlock()
 	
 func set_prompt(txt: String)->void:
 	prompt.set_text(txt)
@@ -70,14 +99,14 @@ func scroll_bottom()->void:
 		scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 
 func built_in_command(cmd: String, args: Array)->bool:
-	if cmd == "reload":
-		Programs.reload()
-		add_text("All programs reloaded.")
-		return true
 	if builtInCommands.has(cmd):
+		commandExecuting = true
 		builtInCommands[cmd].call(args)
 		return true
 	return false
+	
+func clear()->void:
+	output.clear()
 
 func command(inputText: String)->bool:
 	var args = inputText.split(" ")
@@ -87,13 +116,34 @@ func command(inputText: String)->bool:
 	var cmd = args[0]
 	args.remove_at(0)
 	if built_in_command(cmd, args):
+		command_finish()
 		return true
 	
 	for program in Programs.programs:
 		if program.name == cmd:
-			program.lua.call_function("main", [args])
+			program.thread = Thread.new()
+			commandExecuting = true
+			program.thread.start(run_lua_thread, [program, args])
 			return true
 	return false
+	
+func run_lua_thread(args: Array):
+	var program = args[0]
+	var uArgs = args[1]
+	program.lua.call_function("main", [uArgs])
+	command_finish()
+	
+func get_input()->String:
+	input.clear()
+	input.show()
+	input.grab_focus()
+	getInput=true
+	while getInput:
+		pass
+	var txt = input.get_text()
+	input.clear()
+	input.hide()
+	return txt
 
 func _on_terminal_visibility_changed():
 	if is_visible_in_tree():

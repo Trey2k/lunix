@@ -2,12 +2,19 @@ extends Control
 
 var Terminal: Control
 var Editor: Control
+var Graphics: Node2D
 
 var currentDir: Directory
+var currentMode = Programs.MODE_TERM
 
-func _ready():
+func _ready()->void:
+	Programs.changeMode = change_mode
+	Graphics = $graphics
 	Terminal = $Terminal
 	Editor = $codeEditor
+	Programs.load_all()
+	
+	Graphics.hide()
 	currentDir = Directory.new()
 	if currentDir.open("user://storage") != OK:
 		make_storage()
@@ -17,6 +24,7 @@ func _ready():
 	Terminal.add_builtin_command("ls", ls_command)
 	Terminal.add_builtin_command("cd", cd_command)
 	Terminal.add_builtin_command("rm", rm_command)
+	Terminal.add_builtin_command("reload", reload_command)
 	Terminal.set_prompt("%s >" % currentDir.get_current_dir().replace("user://storage", ""))
 	Editor.connect("editor_closed", Terminal.show)
 
@@ -40,7 +48,23 @@ func mkdir_command(args: Array)->void:
 		dir.open(currentDir.get_current_dir())
 	if currentDir.make_dir(dirName) != OK:
 		Terminal.add_text("ERROR: Unable to make directory '%s'." % dirName)
-	
+
+func change_mode(mode: String)->void:
+	match mode:
+		"term":
+			if currentMode == Programs.MODE_TERM:
+				return
+			currentMode = Programs.MODE_TERM
+			Terminal.show()
+			Graphics.hide()
+			Graphics.clear()
+		"gfx":
+			if currentMode == Programs.MODE_GFX:
+				return
+			currentMode = Programs.MODE_GFX
+			Terminal.hide()
+			Graphics.show()
+
 func ls_command(args: Array)->void:
 	var dir: Directory
 	if args.size() < 1:
@@ -76,8 +100,12 @@ func rm_command(args: Array)->void:
 	if args.size() < 1:
 		Terminal.add_text("ERROR: No directory/file name provided.")
 	if currentDir.remove(args[0]) != OK:
-		Terminal.add_text("ERROR: Unable to remove file %s" % args[0])
+		Terminal.add_text("ERROR: Unable to remove file '%s'." % args[0])
 	Programs.reload()
+	
+func reload_command(args: Array)->void:
+		Programs.reload()
+		Terminal.add_text("All programs reloaded.")
 	
 func make_storage()->void:
 	currentDir.open("user://")
