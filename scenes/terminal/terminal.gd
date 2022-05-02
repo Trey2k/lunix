@@ -17,8 +17,6 @@ var textLock: Mutex
 
 var builtInCommands = {}
 
-
-
 func _ready()->void:
 	input = $scrollContainer/vContainer/hContainer/lineEdit
 	prompt = $scrollContainer/vContainer/hContainer/prompt
@@ -41,6 +39,7 @@ func _process(_delta):
 		output.add_text("%s\n" % txt)
 
 func lua_err_handler(err: String)->void:
+	print("Lua Error: " + err + "\n")
 	add_text("Lua Error: " + err + "\n")
 	
 func add_builtin_command(cName: String, cmd: Callable)->void:
@@ -121,18 +120,11 @@ func command(inputText: String)->bool:
 	
 	for program in Programs.programs:
 		if program.name == cmd:
-			program.thread = Thread.new()
 			commandExecuting = true
-			program.thread.start(run_lua_thread, [program, args])
+			program.run(args, command_finish)
 			return true
 	return false
-	
-func run_lua_thread(args: Array):
-	var program = args[0]
-	var uArgs = args[1]
-	program.lua.call_function("main", [uArgs])
-	command_finish()
-	
+
 func get_input()->String:
 	input.clear()
 	input.show()
@@ -145,6 +137,6 @@ func get_input()->String:
 	input.hide()
 	return txt
 
-func _on_terminal_visibility_changed():
+func _on_terminal_visibility_changed()->void:
 	if is_visible_in_tree():
 		input.grab_focus()

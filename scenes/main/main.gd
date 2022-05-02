@@ -5,7 +5,6 @@ var Editor: Control
 var Graphics: Node2D
 
 var currentDir: Directory
-var currentMode = Programs.MODE_TERM
 
 func _ready()->void:
 	Programs.changeMode = change_mode
@@ -50,20 +49,24 @@ func mkdir_command(args: Array)->void:
 		Terminal.add_text("ERROR: Unable to make directory '%s'." % dirName)
 
 func change_mode(mode: String)->void:
+	var oldMode = Programs.currentMode
 	match mode:
 		"term":
-			if currentMode == Programs.MODE_TERM:
+			if Programs.currentMode == Programs.MODE_TERM:
 				return
-			currentMode = Programs.MODE_TERM
+			Programs.currentMode = Programs.MODE_TERM
 			Terminal.show()
 			Graphics.hide()
 			Graphics.clear()
 		"gfx":
-			if currentMode == Programs.MODE_GFX:
+			if Programs.currentMode == Programs.MODE_GFX:
 				return
-			currentMode = Programs.MODE_GFX
+			Programs.currentMode = Programs.MODE_GFX
 			Terminal.hide()
 			Graphics.show()
+	if oldMode!=Programs.currentMode:
+		for program in Programs.programs:
+			program.mode = Programs.currentMode
 
 func ls_command(args: Array)->void:
 	var dir: Directory

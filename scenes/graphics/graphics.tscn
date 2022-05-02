@@ -5,4 +5,4 @@
 [node name="graphics" type="Node2D"]
 script = ExtResource( "1_yejws" )
 
-[node name="sprites" type="Node2D" parent="."]
+[node name="objects" type="Node2D" parent="."]
